@@ -1,3 +1,9 @@
+# This was very fun to do
+# Tebryntek
+# Date Created: August 15th, 2024
+# Last Updated: August 22nd, 2024
+# A basic music player made in python with Pygame and Tkinter
+
 # TKinter imports
 from tkinter import * # All the basic nonsense
 from tkinter import filedialog # For selecting files
@@ -78,7 +84,7 @@ def showPosition(songPositionLabel):
     # Place song position label
     songPositionLabel.place(x=20, y=100)
 
-# function to print artist and song title, obviously not done at ALL
+# function to print artist and song title
 def getSongTitlenArtist(audioMetadata, titleArtistLabel):
 
     # Try the following code
@@ -163,7 +169,7 @@ def adjust_vol(volume):
     # set the volume of the music 
     pygame.mixer.music.set_volume(volumePy)
 
-# main function - where all the fuckery happens and where all the commenting needs to be
+# main function
 def main():
     pygame.init() # initalize pygame
 
