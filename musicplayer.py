@@ -21,14 +21,15 @@ import threading
 import time
 
 # function to select audio
-def select_audio(audio_file):
+def select_audio(audio_file, audioFileNameLabel):
 
     # Stop music from playing if music is already playing
     pygame.mixer.music.stop()
 
-    # Prompt user to select a file from the following choices              Audio Files
+    # Prompt user to select a file from the following choices             Audio Files
     audio_file = filedialog.askopenfilename(filetypes=[("Audio Files", ".mp3 .ogg .wav")])
-
+    print(audio_file)
+    
     # Global Audiometadata... which is probably not good practice but I'm learning
     global audioMetadata
     
@@ -57,6 +58,18 @@ def select_audio(audio_file):
         except pygame.error: # if a pygame error is thrown 
             # run this
             messagebox.showerror(title="Error Reading File", message="This file was not able to be read. Try another.")
+
+    # split the audio_file path by the number of slashes(/) 
+    res = audio_file.split("/", audio_file.count('/'))
+
+    # get the audio_filename from that
+    audio_fileName = res[-1]
+    print(audio_fileName)
+
+    # update the file name label and place
+    audioFileNameLabel.config(text=audio_fileName)
+    audioFileNameLabel.place(x=0, y=125)
+
     # return the audioMetadata
     return audioMetadata
 
@@ -66,8 +79,43 @@ def showPosition(songPositionLabel):
     songPositionLabel.place(x=20, y=100)
 
 # function to print artist and song title, obviously not done at ALL
-def getSongTitle(audio_file, audioMetadata, songTitle, duration):
-    songTitle = ""
+def getSongTitlenArtist(audioMetadata, titleArtistLabel):
+
+    # Try the following code
+    try:
+    # trying to figure out audio title metadata tags
+        if "TIT2" in audioMetadata.tags:
+            songTitle = audioMetadata.tags["TIT2"] # if its an mp3 assign the title to songTitle
+            print(songTitle) # print it out
+        elif "title" in audioMetadata.tags: # if it's not an mp3 and it's an ogg or wav
+            songTitle = audioMetadata.tags["title"] # assign the ogg/wav title to songTitle
+            print(songTitle) # print out songTitle
+        else: 
+            songTitle = "Unknown Song" # if it's none of those/there is no title, assign Unknown Song to songTitle
+            print(songTitle) # print out Unknown Song
+    except TypeError: # If a type error is thrown then assign unknown song to songTitle
+        songTitle = "Unknown Song"
+        print(songTitle)
+        
+    try:
+    # I'm not typing all that again, you get it
+        if "TPE1" in audioMetadata.tags:
+            songArtist = audioMetadata.tags["TPE1"]
+            print(songArtist)
+        elif "artist" in audioMetadata.tags:
+            songArtist = audioMetadata.tags["artist"]
+            print(songArtist)
+        else:
+            songArtist = "Unknown Artist"
+            print(songArtist)
+    except TypeError:
+        songArtist = "Unknown Artist"
+        print(songArtist)
+    
+    # Combine song title and song artist to show the complete thing
+    titleArtistLabel.config(text=f"{songTitle}\nby\n{songArtist}")
+    titleArtistLabel.place(x=120, y=0)
+
 
 # Function to get the duration of a song
 def getDuration():
@@ -88,6 +136,7 @@ def getDuration():
 def setDuration(durationLabel):
     global duration
     
+    # config the duration label
     durationLabel.config(text = duration)
 
 # Getter Setter Combination for updating the song position
@@ -126,7 +175,7 @@ def main():
 
     # attributes of the window
     root.title("Music Player")
-    root.geometry("320x125")
+    root.geometry("320x145")
     root.resizable(False, False)
     
     # make icon photo
@@ -139,11 +188,11 @@ def main():
     # play button
     play = Button(root, text="play", 
                   width = 5, # width of the button
-                  font=("Courier New", 15), # font and font size
+                  font=("Courier New", 15), # font and font size                                            dont even ask me how
                   command=lambda: [pygame.mixer.music.play(), threading.Thread(target=updatePosition, args=(songPositionLabel,)).start()]) # let music play and execute a functions (TOOK WAY TOO GOD DAMN LONG TO FIND OUT)
-
+                                                                                                        #   a comma works here
     # place play button
-    play.place(x=50,y=35)
+    play.place(x=50,y=50)
 
     # stop button
     stop = Button(root, text="stop", 
@@ -152,12 +201,12 @@ def main():
                   command=lambda: pygame.mixer.music.stop()) # just stop the music. So easy to do :) I love you line 143. Mwah, you're so beautiful and simple
 
     # place stop button
-    stop.place(x=175, y=35)
+    stop.place(x=175, y=50)
 
     # button to browse files
     browseFiles = Button(root, text="Browse Files...", 
                          width = 15, font=("Courier New", 8), 
-                         command=lambda: [select_audio(audio_file), getDuration(), setDuration(durationLabel), showPosition(songPositionLabel)]) # Execute 3 functions. So fancy.(not)
+                         command=lambda: [select_audio(audio_file, audioFileNameLabel), getDuration(), setDuration(durationLabel), showPosition(songPositionLabel), getSongTitlenArtist(audioMetadata, titleArtistLabel)]) # Execute 4 functions. So fancy.(not)
 
     # Place small button to browse files
     browseFiles.place(x=0, y=0)
@@ -192,6 +241,14 @@ def main():
 
     # Place duration label, dont ask me why the duration label is placed after the songPosition label
     durationLabel.place(x=100, y=100)
+
+    # label for song title and song artist
+    titleArtistLabel = Label(root, text="PlaceHolder Ipsum\nor\nwhatever",
+                             font=("Courier New", 7))
+
+    # label for the audio file name
+    audioFileNameLabel = Label(root, text="No Song Selected",
+                               font=("Courier New", 7))
 
     # main loop for the window
     root.mainloop()
